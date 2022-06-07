@@ -15,3 +15,11 @@ set_target_properties(ggwave_flutter PROPERTIES
 )
 
 target_compile_definitions(ggwave_flutter PUBLIC DART_SHARED_LIB)
+
+set(GGWAVE_DIR ./ggwave)
+
+add_subdirectory(${GGWAVE_DIR} ./ggwave)
+
+include_directories(${GGWAVE_DIR}/include)
+
+target_link_libraries(ggwave_flutter ggwave)

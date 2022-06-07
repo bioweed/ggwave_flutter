@@ -9,7 +9,7 @@ headers:
   entry-points:
     - 'src/ggwave_flutter.h'
   include-directives:
-    - 'src/ggwave_flutter.h'
+    - 'src\ggwave_flutter.h'
 preamble: |
   // ignore_for_file: always_specify_types
   // ignore_for_file: camel_case_types

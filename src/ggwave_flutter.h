@@ -1,6 +1,9 @@
 #include <stdint.h>
 #include <stdio.h>
 #include <stdlib.h>
+#include <string.h>
+
+#include "ggwave/include/ggwave/ggwave.h"
 
 #if _WIN32
 #include <windows.h>
@@ -28,3 +31,17 @@ FFI_PLUGIN_EXPORT intptr_t sum(intptr_t a, intptr_t b);
 // block Dart execution. This will cause dropped frames in Flutter applications.
 // Instead, call these native functions on a separate isolate.
 FFI_PLUGIN_EXPORT intptr_t sum_long_running(intptr_t a, intptr_t b);
+
+FFI_PLUGIN_EXPORT void initNative();
+
+FFI_PLUGIN_EXPORT char *sendMessage(const char *dataBuffer, int dataSize);
+
+FFI_PLUGIN_EXPORT int convertDataToAudio(const char *dataBuffer, int dataSize, char *out);
+
+FFI_PLUGIN_EXPORT int convertDataToAudio2(const char *dataBuffer, int dataSize, char **out);
+
+FFI_PLUGIN_EXPORT int getRequiredBufferSize(const char *dataBuffer, int dataSize);
+
+FFI_PLUGIN_EXPORT int test(char *out);
+
+FFI_PLUGIN_EXPORT void bar(int **x);

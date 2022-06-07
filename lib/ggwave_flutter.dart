@@ -1,10 +1,70 @@
-
 import 'dart:async';
 import 'dart:ffi';
 import 'dart:io';
 import 'dart:isolate';
+import 'dart:typed_data';
 
 import 'ggwave_flutter_bindings_generated.dart';
+import 'package:ffi/ffi.dart';
+
+void init() => _bindings.initNative();
+
+Uint8List? convertDataToAudio(String data) {
+  var data_pointer = data.toNativeUtf8().cast<Int8>();
+  // var out = "".toNativeUtf8().cast<Int8>();
+  // var out = allocate(0);
+  int size = _bindings.getRequiredBufferSize(data_pointer, data.length);
+
+  Pointer<Pointer<Int8>> out = malloc();
+  int res = _bindings.convertDataToAudio2(data_pointer, data.length, out);
+  if (res < 0) {
+    malloc.free(out);
+    return null;
+  }
+
+/*
+  // Pointer<Int8> out = malloc();
+  // Pointer<Pointer<Int8>> out2 = malloc();
+  // out2.value = Pointer.fromAddress(out.address);
+  Pointer<Int8> out = calloc<Int8>(size);
+  print("before ${out.address}");
+
+  int res = _bindings.convertDataToAudio(data_pointer, data.length, out);
+  out = _bindings.sendMessage(data_pointer, data.length);
+  print("after ${out.address}");
+  print(res);
+  res *= 2;
+
+  print(out.cast<Uint8>().asTypedList(res).map((e) => e.toString()).join(", "));
+  // malloc.free(out);
+*/
+  print(res);
+  Uint8List audio_data = out.value.cast<Uint8>().asTypedList(res);
+  malloc.free(out.value);
+  malloc.free(out);
+  return audio_data;
+}
+
+void bar() {
+  print("bar");
+  // Pointer<Int32> out = malloc();
+  Pointer<Pointer<Int32>> out2 = malloc();
+  // out2.value = Pointer.fromAddress(out.address);
+  // Pointer<Int8> out =null;
+  // Pointer<Pointer<Int8>> out2 = malloc();
+  _bindings.bar(out2);
+  // print(out.asTypedList(10));
+  print(out2.value.asTypedList(10));
+}
+
+final String Function(String s) test = (s) {
+  print(s);
+
+  var p = s.toNativeUtf8();
+  int len = _bindings.test(p.cast<Int8>());
+  // malloc.free(p);
+  return p.cast<Utf8>().toDartString(length: len);
+};
 
 /// A very short-lived native function.
 ///
@@ -51,7 +111,6 @@ final DynamicLibrary _dylib = () {
 
 /// The bindings to the native functions in [_dylib].
 final GgwaveFlutterBindings _bindings = GgwaveFlutterBindings(_dylib);
-
 
 /// A request to compute `sum`.
 ///

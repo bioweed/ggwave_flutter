@@ -48,9 +48,9 @@ class GgwaveFlutterBindings {
 
   /// A longer lived native function, which occupies the thread calling it.
   ///
-  /// Calling these kind of native functions in the main isolate will
-  /// block Dart execution and cause dropped frames in Flutter applications.
-  /// Consider calling such native functions from a separate isolate.
+  /// Do not call these kind of native functions in the main isolate. They will
+  /// block Dart execution. This will cause dropped frames in Flutter applications.
+  /// Instead, call these native functions on a separate isolate.
   int sum_long_running(
     int a,
     int b,
@@ -66,4 +66,112 @@ class GgwaveFlutterBindings {
           'sum_long_running');
   late final _sum_long_running =
       _sum_long_runningPtr.asFunction<int Function(int, int)>();
+
+  void initNative() {
+    return _initNative();
+  }
+
+  late final _initNativePtr =
+      _lookup<ffi.NativeFunction<ffi.Void Function()>>('initNative');
+  late final _initNative = _initNativePtr.asFunction<void Function()>();
+
+  ffi.Pointer<ffi.Int8> sendMessage(
+    ffi.Pointer<ffi.Int8> dataBuffer,
+    int dataSize,
+  ) {
+    return _sendMessage(
+      dataBuffer,
+      dataSize,
+    );
+  }
+
+  late final _sendMessagePtr = _lookup<
+      ffi.NativeFunction<
+          ffi.Pointer<ffi.Int8> Function(
+              ffi.Pointer<ffi.Int8>, ffi.Int32)>>('sendMessage');
+  late final _sendMessage = _sendMessagePtr
+      .asFunction<ffi.Pointer<ffi.Int8> Function(ffi.Pointer<ffi.Int8>, int)>();
+
+  int convertDataToAudio(
+    ffi.Pointer<ffi.Int8> dataBuffer,
+    int dataSize,
+    ffi.Pointer<ffi.Int8> out,
+  ) {
+    return _convertDataToAudio(
+      dataBuffer,
+      dataSize,
+      out,
+    );
+  }
+
+  late final _convertDataToAudioPtr = _lookup<
+      ffi.NativeFunction<
+          ffi.Int32 Function(ffi.Pointer<ffi.Int8>, ffi.Int32,
+              ffi.Pointer<ffi.Int8>)>>('convertDataToAudio');
+  late final _convertDataToAudio = _convertDataToAudioPtr.asFunction<
+      int Function(ffi.Pointer<ffi.Int8>, int, ffi.Pointer<ffi.Int8>)>();
+
+  int convertDataToAudio2(
+    ffi.Pointer<ffi.Int8> dataBuffer,
+    int dataSize,
+    ffi.Pointer<ffi.Pointer<ffi.Int8>> out,
+  ) {
+    return _convertDataToAudio2(
+      dataBuffer,
+      dataSize,
+      out,
+    );
+  }
+
+  late final _convertDataToAudio2Ptr = _lookup<
+      ffi.NativeFunction<
+          ffi.Int32 Function(ffi.Pointer<ffi.Int8>, ffi.Int32,
+              ffi.Pointer<ffi.Pointer<ffi.Int8>>)>>('convertDataToAudio2');
+  late final _convertDataToAudio2 = _convertDataToAudio2Ptr.asFunction<
+      int Function(
+          ffi.Pointer<ffi.Int8>, int, ffi.Pointer<ffi.Pointer<ffi.Int8>>)>();
+
+  int getRequiredBufferSize(
+    ffi.Pointer<ffi.Int8> dataBuffer,
+    int dataSize,
+  ) {
+    return _getRequiredBufferSize(
+      dataBuffer,
+      dataSize,
+    );
+  }
+
+  late final _getRequiredBufferSizePtr = _lookup<
+      ffi.NativeFunction<
+          ffi.Int32 Function(
+              ffi.Pointer<ffi.Int8>, ffi.Int32)>>('getRequiredBufferSize');
+  late final _getRequiredBufferSize = _getRequiredBufferSizePtr
+      .asFunction<int Function(ffi.Pointer<ffi.Int8>, int)>();
+
+  int test(
+    ffi.Pointer<ffi.Int8> out,
+  ) {
+    return _test(
+      out,
+    );
+  }
+
+  late final _testPtr =
+      _lookup<ffi.NativeFunction<ffi.Int32 Function(ffi.Pointer<ffi.Int8>)>>(
+          'test');
+  late final _test = _testPtr.asFunction<int Function(ffi.Pointer<ffi.Int8>)>();
+
+  void bar(
+    ffi.Pointer<ffi.Pointer<ffi.Int32>> x,
+  ) {
+    return _bar(
+      x,
+    );
+  }
+
+  late final _barPtr = _lookup<
+      ffi.NativeFunction<
+          ffi.Void Function(ffi.Pointer<ffi.Pointer<ffi.Int32>>)>>('bar');
+  late final _bar =
+      _barPtr.asFunction<void Function(ffi.Pointer<ffi.Pointer<ffi.Int32>>)>();
 }
