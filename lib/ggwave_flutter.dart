@@ -7,42 +7,74 @@ import 'dart:typed_data';
 import 'ggwave_flutter_bindings_generated.dart';
 import 'package:ffi/ffi.dart';
 
+// TxProtocol ids
+enum GGWaveTxProtocolId {
+  GGWAVE_TX_PROTOCOL_AUDIBLE_NORMAL,
+  GGWAVE_TX_PROTOCOL_AUDIBLE_FAST,
+  GGWAVE_TX_PROTOCOL_AUDIBLE_FASTEST,
+  GGWAVE_TX_PROTOCOL_ULTRASOUND_NORMAL,
+  GGWAVE_TX_PROTOCOL_ULTRASOUND_FAST,
+  GGWAVE_TX_PROTOCOL_ULTRASOUND_FASTEST,
+  GGWAVE_TX_PROTOCOL_DT_NORMAL,
+  GGWAVE_TX_PROTOCOL_DT_FAST,
+  GGWAVE_TX_PROTOCOL_DT_FASTEST,
+
+  // GGWAVE_TX_PROTOCOL_CUSTOM_0,
+  // GGWAVE_TX_PROTOCOL_CUSTOM_1,
+  // GGWAVE_TX_PROTOCOL_CUSTOM_2,
+  // GGWAVE_TX_PROTOCOL_CUSTOM_3,
+  // GGWAVE_TX_PROTOCOL_CUSTOM_4,
+  // GGWAVE_TX_PROTOCOL_CUSTOM_5,
+  // GGWAVE_TX_PROTOCOL_CUSTOM_6,
+  // GGWAVE_TX_PROTOCOL_CUSTOM_7,
+  // GGWAVE_TX_PROTOCOL_CUSTOM_8,
+  // GGWAVE_TX_PROTOCOL_CUSTOM_9,
+}
+
 void init() => _bindings.initNative();
 
-Uint8List? convertDataToAudio(String data) {
-  var data_pointer = data.toNativeUtf8().cast<Int8>();
-  // var out = "".toNativeUtf8().cast<Int8>();
-  // var out = allocate(0);
-  int size = _bindings.getRequiredBufferSize(data_pointer, data.length);
-
+Uint8List? convertDataToAudio(String data,
+    {GGWaveTxProtocolId protocol =
+        GGWaveTxProtocolId.GGWAVE_TX_PROTOCOL_AUDIBLE_FAST}) {
+  var dataPointer = data.toNativeUtf8().cast<Int8>();
   Pointer<Pointer<Int8>> out = malloc();
-  int res = _bindings.convertDataToAudio2(data_pointer, data.length, out);
+  int res = _bindings.convertDataToAudio(
+      dataPointer, data.length, out, protocol.index);
   if (res < 0) {
     malloc.free(out);
     return null;
   }
 
-/*
-  // Pointer<Int8> out = malloc();
-  // Pointer<Pointer<Int8>> out2 = malloc();
-  // out2.value = Pointer.fromAddress(out.address);
-  Pointer<Int8> out = calloc<Int8>(size);
-  print("before ${out.address}");
-
-  int res = _bindings.convertDataToAudio(data_pointer, data.length, out);
-  out = _bindings.sendMessage(data_pointer, data.length);
-  print("after ${out.address}");
-  print(res);
-  res *= 2;
-
-  print(out.cast<Uint8>().asTypedList(res).map((e) => e.toString()).join(", "));
-  // malloc.free(out);
-*/
-  print(res);
-  Uint8List audio_data = out.value.cast<Uint8>().asTypedList(res);
+  Uint8List audioDataInCMemory = out.value.cast<Uint8>().asTypedList(res);
+  // create copy for dart GC
+  // see https://github.com/dart-lang/ffi/issues/22
+  Uint8List audioData = Uint8List.fromList(audioDataInCMemory);
   malloc.free(out.value);
   malloc.free(out);
-  return audio_data;
+  return audioData;
+}
+
+void setRxProtocolID(GGWaveTxProtocolId? protocolID) {
+  if (protocolID != null) {
+    _bindings.setRxProtocolID(protocolID.index);
+  } else {
+    _bindings.setRxProtocolID(-1);
+  }
+}
+
+String? convertAudioToData(Uint8List audio) {
+  Pointer<Int8> dataPointer = malloc(audio.length);
+  Pointer<Pointer<Int8>> out = malloc();
+  dataPointer.asTypedList(audio.length).setAll(0, audio.buffer.asInt8List());
+  int size = _bindings.processCaptureData(dataPointer, audio.length, out);
+  String? data;
+  if (size > 0) {
+    data = out.value.cast<Utf8>().toDartString();
+  }
+  malloc.free(dataPointer);
+  malloc.free(out.value);
+  malloc.free(out);
+  return data;
 }
 
 void bar() {

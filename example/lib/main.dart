@@ -1,3 +1,5 @@
+import 'dart:typed_data';
+
 import 'package:flutter/material.dart';
 import 'dart:async';
 
@@ -5,6 +7,8 @@ import 'package:ggwave_flutter/ggwave_flutter.dart' as ggwave_flutter;
 
 import 'package:flutter_sound/flutter_sound.dart';
 // import 'package:sound_stream/sound_stream.dart';
+import 'package:logger/logger.dart';
+import 'package:permission_handler/permission_handler.dart';
 
 void main() {
   runApp(const MyApp());
@@ -20,8 +24,15 @@ class MyApp extends StatefulWidget {
 class _MyAppState extends State<MyApp> {
   late int sumResult;
   late Future<int> sumAsyncResult;
-  FlutterSoundPlayer _mPlayer = FlutterSoundPlayer();
+  FlutterSoundPlayer _mPlayer = FlutterSoundPlayer(logLevel: Level.info);
+  FlutterSoundRecorder _mRecorder = FlutterSoundRecorder(logLevel: Level.info);
   bool _mPlayerIsInited = false;
+  final controller = StreamController<FoodData>.broadcast();
+  List<Uint8List> buffer = [];
+  Uint8List buffer2 = Uint8List(0);
+  BytesBuilder buffer3 = BytesBuilder();
+  String string = "";
+
   // PlayerStream _player = PlayerStream();
 
   @override
@@ -31,11 +42,20 @@ class _MyAppState extends State<MyApp> {
     sumAsyncResult = ggwave_flutter.sumAsync(3, 4);
     _mPlayer.openPlayer().then((value) {
       print("initialted");
-
       setState(() {
         _mPlayerIsInited = true;
       });
     });
+
+    controller.stream.listen((event) {
+      if (event.data != null) {
+        // buffer2 = Uint8List.fromList(buffer2 + event.data! as Uint8List);
+        buffer3.add(event.data!);
+      }
+    });
+
+    string = ggwave_flutter.test("a");
+
     // _player.initialize().then((value) {
     //   print("initialted");
 
@@ -43,7 +63,6 @@ class _MyAppState extends State<MyApp> {
     //     _mPlayerIsInited = true;
     //   });
     // });
-    
   }
 
   @override
@@ -58,28 +77,12 @@ class _MyAppState extends State<MyApp> {
   Widget build(BuildContext context) {
     const textStyle = TextStyle(fontSize: 25);
     const spacerSmall = SizedBox(height: 10);
-    var string = ggwave_flutter.test("a");
     ggwave_flutter.init();
     ggwave_flutter.bar();
-    var res = ggwave_flutter.convertDataToAudio("Hello Android!");
-    if (_mPlayerIsInited) {
-      // _mPlayer.startPlayer(fromDataBuffer: res);
-      _mPlayer.startPlayer(fromDataBuffer: res, codec: Codec.pcm16, sampleRate: 48000, numChannels: 1);
-      // _player.start().then((value) => _player.writeChunk(res));
-            
+    var res = ggwave_flutter.convertDataToAudio("Hello Android!",
+        protocol: ggwave_flutter
+            .GGWaveTxProtocolId.GGWAVE_TX_PROTOCOL_ULTRASOUND_FASTEST);
 
-      // final fileUri =
-      //     "https://upload.wikimedia.org/wikipedia/en/1/1e/City_vs._homer_song.ogg";
-
-      // _mPlayer.startPlayer(
-      //   fromURI: fileUri,
-      //   codec: Codec.mp3,
-      //   whenFinished: () {
-      //     _mPlayer.startPlayer(fromDataBuffer: res, codec: Codec.pcm16, sampleRate: 48000, numChannels: 1);
-      //     print('I hope you enjoyed listening to this song');
-      //   },
-      // );
-    }
     return MaterialApp(
       home: Scaffold(
         appBar: AppBar(
@@ -115,7 +118,70 @@ class _MyAppState extends State<MyApp> {
                     );
                   },
                 ),
+                FloatingActionButton.extended(
+                  heroTag: "play",
+                  onPressed: () {
+                    if (_mPlayerIsInited) {
+                      // _mPlayer.startPlayer(fromDataBuffer: res);
+                      _mPlayer.startPlayer(
+                          fromDataBuffer: res,
+                          codec: Codec.pcm16,
+                          sampleRate: 48000,
+                          numChannels: 1);
+                    }
+                  },
+                  label: Text("play"),
+                ),
                 Text(string),
+                FloatingActionButton.extended(
+                  heroTag: "rec",
+                  onPressed: () async {
+                    var status = await Permission.microphone.request();
+                    if (status != PermissionStatus.granted) {
+                      throw RecordingPermissionException(
+                          'Microphone permission not granted');
+                    }
+
+                    await _mRecorder.openRecorder();
+                    _mRecorder.startRecorder(
+                        codec: Codec.pcm16,
+                        sampleRate: 48000,
+                        bitRate: 48000,
+                        toStream: controller.sink);
+                  },
+                  label: Text("record"),
+                ),
+                FloatingActionButton.extended(
+                  heroTag: "play2",
+                  onPressed: () async {
+                    await _mRecorder.stopRecorder();
+                    if (_mPlayerIsInited) {
+                      //buffer.fold(Uint8List(0), (previousValue, element) => Uint8List(previousValue!.length+ element.length))
+                      // _mPlayer.startPlayer(fromDataBuffer: res);
+                      // var b = BytesBuilder();
+                      // b.add(buffer as List<int>);
+                      _mPlayer.startPlayer(
+                          fromDataBuffer: buffer3.toBytes(),
+                          codec: Codec.pcm16,
+                          sampleRate: 48000,
+                          numChannels: 1);
+                    }
+                  },
+                  label: Text("play recorded"),
+                ),
+                FloatingActionButton.extended(
+                  heroTag: "convert",
+                  onPressed: () async {
+                    await _mRecorder.stopRecorder();
+
+                    setState(() {
+                      string = ggwave_flutter
+                              .convertAudioToData(buffer3.toBytes()) ??
+                          "N/A";
+                    });
+                  },
+                  label: Text("processs"),
+                ),
               ],
             ),
           ),

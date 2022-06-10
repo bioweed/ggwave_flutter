@@ -36,11 +36,15 @@ FFI_PLUGIN_EXPORT void initNative();
 
 FFI_PLUGIN_EXPORT char *sendMessage(const char *dataBuffer, int dataSize);
 
-FFI_PLUGIN_EXPORT int convertDataToAudio(const char *dataBuffer, int dataSize, char *out);
+FFI_PLUGIN_EXPORT int convertDataToAudio2(const char *dataBuffer, int dataSize, char *out);
 
-FFI_PLUGIN_EXPORT int convertDataToAudio2(const char *dataBuffer, int dataSize, char **out);
+FFI_PLUGIN_EXPORT int convertDataToAudio(const char *dataBuffer, int dataSize, char **out, int protocolID);
 
 FFI_PLUGIN_EXPORT int getRequiredBufferSize(const char *dataBuffer, int dataSize);
+
+FFI_PLUGIN_EXPORT int processCaptureData(const char * dataBuffer, int dataSize, char ** out );
+
+FFI_PLUGIN_EXPORT void setRxProtocolID(int protocolID);
 
 FFI_PLUGIN_EXPORT int test(char *out);
 

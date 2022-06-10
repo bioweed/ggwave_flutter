@@ -92,29 +92,10 @@ class GgwaveFlutterBindings {
   late final _sendMessage = _sendMessagePtr
       .asFunction<ffi.Pointer<ffi.Int8> Function(ffi.Pointer<ffi.Int8>, int)>();
 
-  int convertDataToAudio(
-    ffi.Pointer<ffi.Int8> dataBuffer,
-    int dataSize,
-    ffi.Pointer<ffi.Int8> out,
-  ) {
-    return _convertDataToAudio(
-      dataBuffer,
-      dataSize,
-      out,
-    );
-  }
-
-  late final _convertDataToAudioPtr = _lookup<
-      ffi.NativeFunction<
-          ffi.Int32 Function(ffi.Pointer<ffi.Int8>, ffi.Int32,
-              ffi.Pointer<ffi.Int8>)>>('convertDataToAudio');
-  late final _convertDataToAudio = _convertDataToAudioPtr.asFunction<
-      int Function(ffi.Pointer<ffi.Int8>, int, ffi.Pointer<ffi.Int8>)>();
-
   int convertDataToAudio2(
     ffi.Pointer<ffi.Int8> dataBuffer,
     int dataSize,
-    ffi.Pointer<ffi.Pointer<ffi.Int8>> out,
+    ffi.Pointer<ffi.Int8> out,
   ) {
     return _convertDataToAudio2(
       dataBuffer,
@@ -126,10 +107,34 @@ class GgwaveFlutterBindings {
   late final _convertDataToAudio2Ptr = _lookup<
       ffi.NativeFunction<
           ffi.Int32 Function(ffi.Pointer<ffi.Int8>, ffi.Int32,
-              ffi.Pointer<ffi.Pointer<ffi.Int8>>)>>('convertDataToAudio2');
+              ffi.Pointer<ffi.Int8>)>>('convertDataToAudio2');
   late final _convertDataToAudio2 = _convertDataToAudio2Ptr.asFunction<
-      int Function(
-          ffi.Pointer<ffi.Int8>, int, ffi.Pointer<ffi.Pointer<ffi.Int8>>)>();
+      int Function(ffi.Pointer<ffi.Int8>, int, ffi.Pointer<ffi.Int8>)>();
+
+  int convertDataToAudio(
+    ffi.Pointer<ffi.Int8> dataBuffer,
+    int dataSize,
+    ffi.Pointer<ffi.Pointer<ffi.Int8>> out,
+    int protocolID,
+  ) {
+    return _convertDataToAudio(
+      dataBuffer,
+      dataSize,
+      out,
+      protocolID,
+    );
+  }
+
+  late final _convertDataToAudioPtr = _lookup<
+      ffi.NativeFunction<
+          ffi.Int32 Function(
+              ffi.Pointer<ffi.Int8>,
+              ffi.Int32,
+              ffi.Pointer<ffi.Pointer<ffi.Int8>>,
+              ffi.Int32)>>('convertDataToAudio');
+  late final _convertDataToAudio = _convertDataToAudioPtr.asFunction<
+      int Function(ffi.Pointer<ffi.Int8>, int,
+          ffi.Pointer<ffi.Pointer<ffi.Int8>>, int)>();
 
   int getRequiredBufferSize(
     ffi.Pointer<ffi.Int8> dataBuffer,
@@ -147,6 +152,40 @@ class GgwaveFlutterBindings {
               ffi.Pointer<ffi.Int8>, ffi.Int32)>>('getRequiredBufferSize');
   late final _getRequiredBufferSize = _getRequiredBufferSizePtr
       .asFunction<int Function(ffi.Pointer<ffi.Int8>, int)>();
+
+  int processCaptureData(
+    ffi.Pointer<ffi.Int8> dataBuffer,
+    int dataSize,
+    ffi.Pointer<ffi.Pointer<ffi.Int8>> out,
+  ) {
+    return _processCaptureData(
+      dataBuffer,
+      dataSize,
+      out,
+    );
+  }
+
+  late final _processCaptureDataPtr = _lookup<
+      ffi.NativeFunction<
+          ffi.Int32 Function(ffi.Pointer<ffi.Int8>, ffi.Int32,
+              ffi.Pointer<ffi.Pointer<ffi.Int8>>)>>('processCaptureData');
+  late final _processCaptureData = _processCaptureDataPtr.asFunction<
+      int Function(
+          ffi.Pointer<ffi.Int8>, int, ffi.Pointer<ffi.Pointer<ffi.Int8>>)>();
+
+  void setRxProtocolID(
+    int protocolID,
+  ) {
+    return _setRxProtocolID(
+      protocolID,
+    );
+  }
+
+  late final _setRxProtocolIDPtr =
+      _lookup<ffi.NativeFunction<ffi.Void Function(ffi.Int32)>>(
+          'setRxProtocolID');
+  late final _setRxProtocolID =
+      _setRxProtocolIDPtr.asFunction<void Function(int)>();
 
   int test(
     ffi.Pointer<ffi.Int8> out,

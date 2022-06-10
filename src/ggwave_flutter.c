@@ -2,6 +2,8 @@
 
 ggwave_Instance g_ggwave;
 
+int rxProtocolID = -1;
+
 // A very short-lived native function.
 //
 // For very short-lived functions, it is fine to call them on the main isolate.
@@ -47,56 +49,93 @@ void initNative(){
     parameters.sampleFormatOut = GGWAVE_SAMPLE_FORMAT_I16;
     parameters.sampleRateInp = 48000;
     g_ggwave = ggwave_init(parameters);
+    // turn off custom RX protocols
+    ggwave_toggleRxProtocol(g_ggwave, 9, 0);
+    ggwave_toggleRxProtocol(g_ggwave, 10, 0);
+    ggwave_toggleRxProtocol(g_ggwave, 11, 0);
+    ggwave_toggleRxProtocol(g_ggwave, 12, 0);
+    ggwave_toggleRxProtocol(g_ggwave, 13, 0);
+    ggwave_toggleRxProtocol(g_ggwave, 14, 0);
+    ggwave_toggleRxProtocol(g_ggwave, 15, 0);
+    ggwave_toggleRxProtocol(g_ggwave, 16, 0);
+    ggwave_toggleRxProtocol(g_ggwave, 17, 0);
+    ggwave_toggleRxProtocol(g_ggwave, 18, 0);
 }
 
 int getRequiredBufferSize(const char * dataBuffer, int dataSize){
     return ggwave_encode(g_ggwave, dataBuffer, dataSize, GGWAVE_TX_PROTOCOL_AUDIBLE_FAST, 10, NULL, 1);
 }
 
-int convertDataToAudio(const char * dataBuffer, int dataSize, char * out ){
+int convertDataToAudio2(const char * dataBuffer, int dataSize, char * out ){
 
     const int ret = ggwave_encode(g_ggwave,dataBuffer, dataSize, GGWAVE_TX_PROTOCOL_AUDIBLE_FAST, 10, out, 0);
-
-    // if (2*ret != n) {
-    //   return -1;
-    // }
 
     return ret;
 }
 
-int convertDataToAudio2(const char * dataBuffer, int dataSize, char ** out ){
-
-    const int n = ggwave_encode(g_ggwave, dataBuffer, dataSize, GGWAVE_TX_PROTOCOL_AUDIBLE_FAST, 10, NULL, 1);
-
-    char * waveform = malloc(sizeof(char) * n);
-
-    const int ret = ggwave_encode(g_ggwave,dataBuffer,dataSize, GGWAVE_TX_PROTOCOL_AUDIBLE_FAST, 10, waveform, 0);
-
-    if (2*ret != n) {
-      free(waveform);
-      return -1;
-    }
-
-    * out = waveform;
-
-    return n;
+int convertDataToAudio(const char *dataBuffer, int dataSize, char **out, int protocolID)
+{
+  const int n = ggwave_encode(g_ggwave, dataBuffer, dataSize, protocolID, 10, NULL, 1);
+  char *waveform = malloc(sizeof(char) * n);
+  const int samples = ggwave_encode(g_ggwave, dataBuffer, dataSize, protocolID, 10, waveform, 0);
+  if (2 * samples != n)
+  {
+    free(waveform);
+    return -1;
+  }
+  *out = waveform;
+  return n;
 }
 
-char * sendMessage(const char * dataBuffer, int dataSize){
-    //convertToAudio
-
-    const int n = ggwave_encode(g_ggwave, dataBuffer, dataSize, GGWAVE_TX_PROTOCOL_AUDIBLE_FAST, 10, NULL, 1);
-
-    char * waveform = malloc(sizeof(char) * n);
-
-    const int ret = ggwave_encode(g_ggwave,dataBuffer,dataSize, GGWAVE_TX_PROTOCOL_AUDIBLE_FAST, 10, waveform, 0);
-
-    if (2*ret != n) {
-      free(waveform);
-      return NULL;
-    }
-
-    return waveform;
+char *sendMessage(const char *dataBuffer, int dataSize)
+{
+  // convertToAudio
+  const int n = ggwave_encode(g_ggwave, dataBuffer, dataSize, GGWAVE_TX_PROTOCOL_AUDIBLE_FAST, 10, NULL, 1);
+  char *waveform = malloc(sizeof(char) * n);
+  const int ret = ggwave_encode(g_ggwave, dataBuffer, dataSize, GGWAVE_TX_PROTOCOL_AUDIBLE_FAST, 10, waveform, 0);
+  if (2 * ret != n)
+  {
+    free(waveform);
+    return NULL;
+  }
+  return waveform;
 }
 
+int processCaptureData(const char *dataBuffer, int dataSize, char **out)
+{
+  char *output = malloc(sizeof(char) * 256);
+  int ret = ggwave_decode(g_ggwave, dataBuffer, dataSize, output);
+  *out = output;
+  return ret;
+}
 
+void setRxProtocolID(int protocolID)
+{
+  if (protocolID >= 0 && protocolID < 10)
+  {
+    ggwave_toggleRxProtocol(g_ggwave, 0, 0);
+    ggwave_toggleRxProtocol(g_ggwave, 1, 0);
+    ggwave_toggleRxProtocol(g_ggwave, 2, 0);
+    ggwave_toggleRxProtocol(g_ggwave, 3, 0);
+    ggwave_toggleRxProtocol(g_ggwave, 4, 0);
+    ggwave_toggleRxProtocol(g_ggwave, 5, 0);
+    ggwave_toggleRxProtocol(g_ggwave, 6, 0);
+    ggwave_toggleRxProtocol(g_ggwave, 7, 0);
+    ggwave_toggleRxProtocol(g_ggwave, 8, 0);
+    ggwave_toggleRxProtocol(g_ggwave, 9, 0);
+    ggwave_toggleRxProtocol(g_ggwave, protocolID, 1);
+  }
+  else
+  {
+    ggwave_toggleRxProtocol(g_ggwave, 0, 1);
+    ggwave_toggleRxProtocol(g_ggwave, 1, 1);
+    ggwave_toggleRxProtocol(g_ggwave, 2, 1);
+    ggwave_toggleRxProtocol(g_ggwave, 3, 1);
+    ggwave_toggleRxProtocol(g_ggwave, 4, 1);
+    ggwave_toggleRxProtocol(g_ggwave, 5, 1);
+    ggwave_toggleRxProtocol(g_ggwave, 6, 1);
+    ggwave_toggleRxProtocol(g_ggwave, 7, 1);
+    ggwave_toggleRxProtocol(g_ggwave, 8, 1);
+    ggwave_toggleRxProtocol(g_ggwave, 9, 1);
+  }
+}
