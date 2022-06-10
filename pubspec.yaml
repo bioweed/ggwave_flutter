@@ -1,5 +1,5 @@
 name: ggwave_flutter
-description: A new Flutter FFI plugin project.
+description: A Flutter FFI plugin for using the ggwave library.
 version: 0.0.1
 homepage:
 

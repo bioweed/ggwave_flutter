@@ -2,8 +2,6 @@
 
 ggwave_Instance g_ggwave;
 
-int rxProtocolID = -1;
-
 // A very short-lived native function.
 //
 // For very short-lived functions, it is fine to call them on the main isolate.
@@ -16,7 +14,8 @@ FFI_PLUGIN_EXPORT intptr_t sum(intptr_t a, intptr_t b) { return a + b; }
 // Do not call these kind of native functions in the main isolate. They will
 // block Dart execution. This will cause dropped frames in Flutter applications.
 // Instead, call these native functions on a separate isolate.
-FFI_PLUGIN_EXPORT intptr_t sum_long_running(intptr_t a, intptr_t b) {
+FFI_PLUGIN_EXPORT intptr_t sum_long_running(intptr_t a, intptr_t b)
+{
   // Simulate work.
 #if _WIN32
   Sleep(5000);
@@ -26,54 +25,27 @@ FFI_PLUGIN_EXPORT intptr_t sum_long_running(intptr_t a, intptr_t b) {
   return a + b;
 }
 
-int test(char * out ){
-        // __android_log_print(ANDROID_LOG_DEBUG, "ggwave (native)", "test");
-    int len = 8;
-    // *out = * static_cast<char *>(calloc(7, sizeof(char)));
-    strncpy(out, "hello", len);
-    // __android_log_print(ANDROID_LOG_DEBUG, "ggwave (native)", "%s", out);
-return len;
-}
-
-void bar(int** x)
+FFI_PLUGIN_EXPORT void initNative()
 {
-   *x = calloc(10,sizeof(int));
-   (*x)[4] = 3;
+  ggwave_Parameters parameters = ggwave_getDefaultParameters();
+  parameters.sampleFormatInp = GGWAVE_SAMPLE_FORMAT_I16;
+  parameters.sampleFormatOut = GGWAVE_SAMPLE_FORMAT_I16;
+  parameters.sampleRateInp = 48000;
+  g_ggwave = ggwave_init(parameters);
+  // turn off custom RX protocols
+  ggwave_toggleRxProtocol(g_ggwave, 9, 0);
+  ggwave_toggleRxProtocol(g_ggwave, 10, 0);
+  ggwave_toggleRxProtocol(g_ggwave, 11, 0);
+  ggwave_toggleRxProtocol(g_ggwave, 12, 0);
+  ggwave_toggleRxProtocol(g_ggwave, 13, 0);
+  ggwave_toggleRxProtocol(g_ggwave, 14, 0);
+  ggwave_toggleRxProtocol(g_ggwave, 15, 0);
+  ggwave_toggleRxProtocol(g_ggwave, 16, 0);
+  ggwave_toggleRxProtocol(g_ggwave, 17, 0);
+  ggwave_toggleRxProtocol(g_ggwave, 18, 0);
 }
 
-void initNative(){
-//      __android_log_print(ANDROID_LOG_DEBUG, "ggwave (native)", "Initializing native module");
-
-    ggwave_Parameters parameters = ggwave_getDefaultParameters();
-    parameters.sampleFormatInp = GGWAVE_SAMPLE_FORMAT_I16;
-    parameters.sampleFormatOut = GGWAVE_SAMPLE_FORMAT_I16;
-    parameters.sampleRateInp = 48000;
-    g_ggwave = ggwave_init(parameters);
-    // turn off custom RX protocols
-    ggwave_toggleRxProtocol(g_ggwave, 9, 0);
-    ggwave_toggleRxProtocol(g_ggwave, 10, 0);
-    ggwave_toggleRxProtocol(g_ggwave, 11, 0);
-    ggwave_toggleRxProtocol(g_ggwave, 12, 0);
-    ggwave_toggleRxProtocol(g_ggwave, 13, 0);
-    ggwave_toggleRxProtocol(g_ggwave, 14, 0);
-    ggwave_toggleRxProtocol(g_ggwave, 15, 0);
-    ggwave_toggleRxProtocol(g_ggwave, 16, 0);
-    ggwave_toggleRxProtocol(g_ggwave, 17, 0);
-    ggwave_toggleRxProtocol(g_ggwave, 18, 0);
-}
-
-int getRequiredBufferSize(const char * dataBuffer, int dataSize){
-    return ggwave_encode(g_ggwave, dataBuffer, dataSize, GGWAVE_TX_PROTOCOL_AUDIBLE_FAST, 10, NULL, 1);
-}
-
-int convertDataToAudio2(const char * dataBuffer, int dataSize, char * out ){
-
-    const int ret = ggwave_encode(g_ggwave,dataBuffer, dataSize, GGWAVE_TX_PROTOCOL_AUDIBLE_FAST, 10, out, 0);
-
-    return ret;
-}
-
-int convertDataToAudio(const char *dataBuffer, int dataSize, char **out, int protocolID)
+FFI_PLUGIN_EXPORT int convertDataToAudio(const char *dataBuffer, int dataSize, char **out, int protocolID)
 {
   const int n = ggwave_encode(g_ggwave, dataBuffer, dataSize, protocolID, 10, NULL, 1);
   char *waveform = malloc(sizeof(char) * n);
@@ -87,21 +59,7 @@ int convertDataToAudio(const char *dataBuffer, int dataSize, char **out, int pro
   return n;
 }
 
-char *sendMessage(const char *dataBuffer, int dataSize)
-{
-  // convertToAudio
-  const int n = ggwave_encode(g_ggwave, dataBuffer, dataSize, GGWAVE_TX_PROTOCOL_AUDIBLE_FAST, 10, NULL, 1);
-  char *waveform = malloc(sizeof(char) * n);
-  const int ret = ggwave_encode(g_ggwave, dataBuffer, dataSize, GGWAVE_TX_PROTOCOL_AUDIBLE_FAST, 10, waveform, 0);
-  if (2 * ret != n)
-  {
-    free(waveform);
-    return NULL;
-  }
-  return waveform;
-}
-
-int processCaptureData(const char *dataBuffer, int dataSize, char **out)
+FFI_PLUGIN_EXPORT int processCaptureData(const char *dataBuffer, int dataSize, char **out)
 {
   char *output = malloc(sizeof(char) * 256);
   int ret = ggwave_decode(g_ggwave, dataBuffer, dataSize, output);
@@ -109,7 +67,7 @@ int processCaptureData(const char *dataBuffer, int dataSize, char **out)
   return ret;
 }
 
-void setRxProtocolID(int protocolID)
+FFI_PLUGIN_EXPORT void setRxProtocolID(int protocolID)
 {
   if (protocolID >= 0 && protocolID < 10)
   {

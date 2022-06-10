@@ -54,14 +54,6 @@ Uint8List? convertDataToAudio(String data,
   return audioData;
 }
 
-void setRxProtocolID(GGWaveTxProtocolId? protocolID) {
-  if (protocolID != null) {
-    _bindings.setRxProtocolID(protocolID.index);
-  } else {
-    _bindings.setRxProtocolID(-1);
-  }
-}
-
 String? convertAudioToData(Uint8List audio) {
   Pointer<Int8> dataPointer = malloc(audio.length);
   Pointer<Pointer<Int8>> out = malloc();
@@ -77,26 +69,13 @@ String? convertAudioToData(Uint8List audio) {
   return data;
 }
 
-void bar() {
-  print("bar");
-  // Pointer<Int32> out = malloc();
-  Pointer<Pointer<Int32>> out2 = malloc();
-  // out2.value = Pointer.fromAddress(out.address);
-  // Pointer<Int8> out =null;
-  // Pointer<Pointer<Int8>> out2 = malloc();
-  _bindings.bar(out2);
-  // print(out.asTypedList(10));
-  print(out2.value.asTypedList(10));
+void setRxProtocolID(GGWaveTxProtocolId? protocolID) {
+  if (protocolID != null) {
+    _bindings.setRxProtocolID(protocolID.index);
+  } else {
+    _bindings.setRxProtocolID(-1);
+  }
 }
-
-final String Function(String s) test = (s) {
-  print(s);
-
-  var p = s.toNativeUtf8();
-  int len = _bindings.test(p.cast<Int8>());
-  // malloc.free(p);
-  return p.cast<Utf8>().toDartString(length: len);
-};
 
 /// A very short-lived native function.
 ///
