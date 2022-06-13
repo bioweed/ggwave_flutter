@@ -97,3 +97,17 @@ FFI_PLUGIN_EXPORT void setRxProtocolID(int protocolID)
     ggwave_toggleRxProtocol(g_ggwave, 9, 1);
   }
 }
+
+FFI_PLUGIN_EXPORT void setRxProtocolIDs(char *protocolIDs)
+{
+  ggwave_toggleRxProtocol(g_ggwave, 0, protocolIDs[0]);
+  ggwave_toggleRxProtocol(g_ggwave, 1, protocolIDs[1]);
+  ggwave_toggleRxProtocol(g_ggwave, 2, protocolIDs[2]);
+  ggwave_toggleRxProtocol(g_ggwave, 3, protocolIDs[3]);
+  ggwave_toggleRxProtocol(g_ggwave, 4, protocolIDs[4]);
+  ggwave_toggleRxProtocol(g_ggwave, 5, protocolIDs[5]);
+  ggwave_toggleRxProtocol(g_ggwave, 6, protocolIDs[6]);
+  ggwave_toggleRxProtocol(g_ggwave, 7, protocolIDs[7]);
+  ggwave_toggleRxProtocol(g_ggwave, 8, protocolIDs[8]);
+  ggwave_toggleRxProtocol(g_ggwave, 9, protocolIDs[9]);
+}

@@ -120,7 +120,6 @@ class _MyAppState extends State<MyApp> {
                   },
                   label: const Text("play"),
                 ),
-                Text(_receivedMessage),
                 FloatingActionButton.extended(
                   heroTag: "rec",
                   onPressed: () async {
@@ -166,6 +165,7 @@ class _MyAppState extends State<MyApp> {
                   },
                   label: const Text("process"),
                 ),
+                Text(_receivedMessage),
               ],
             ),
           ),

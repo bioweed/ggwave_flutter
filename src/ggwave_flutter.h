@@ -39,3 +39,5 @@ FFI_PLUGIN_EXPORT int convertDataToAudio(const char *dataBuffer, int dataSize, c
 FFI_PLUGIN_EXPORT int processCaptureData(const char *dataBuffer, int dataSize, char **out);
 
 FFI_PLUGIN_EXPORT void setRxProtocolID(int protocolID);
+
+FFI_PLUGIN_EXPORT void setRxProtocolIDs(char *protocolIDa);

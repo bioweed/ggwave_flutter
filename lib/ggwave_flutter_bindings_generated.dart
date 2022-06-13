@@ -133,4 +133,18 @@ class GgwaveFlutterBindings {
           'setRxProtocolID');
   late final _setRxProtocolID =
       _setRxProtocolIDPtr.asFunction<void Function(int)>();
+
+  void setRxProtocolIDs(
+    ffi.Pointer<ffi.Int8> protocolIDa,
+  ) {
+    return _setRxProtocolIDs(
+      protocolIDa,
+    );
+  }
+
+  late final _setRxProtocolIDsPtr =
+      _lookup<ffi.NativeFunction<ffi.Void Function(ffi.Pointer<ffi.Int8>)>>(
+          'setRxProtocolIDs');
+  late final _setRxProtocolIDs =
+      _setRxProtocolIDsPtr.asFunction<void Function(ffi.Pointer<ffi.Int8>)>();
 }

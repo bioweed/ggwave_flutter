@@ -77,6 +77,33 @@ void setRxProtocolID(GGWaveTxProtocolId? protocolID) {
   }
 }
 
+void setRxProtocolIDs({
+  bool GGWAVE_TX_PROTOCOL_AUDIBLE_NORMAL = false,
+  bool GGWAVE_TX_PROTOCOL_AUDIBLE_FAST = false,
+  bool GGWAVE_TX_PROTOCOL_AUDIBLE_FASTEST = false,
+  bool GGWAVE_TX_PROTOCOL_ULTRASOUND_NORMAL = false,
+  bool GGWAVE_TX_PROTOCOL_ULTRASOUND_FAST = false,
+  bool GGWAVE_TX_PROTOCOL_ULTRASOUND_FASTEST = false,
+  bool GGWAVE_TX_PROTOCOL_DT_NORMAL = false,
+  bool GGWAVE_TX_PROTOCOL_DT_FAST = false,
+  bool GGWAVE_TX_PROTOCOL_DT_FASTEST = false,
+}) {
+  List<int> settings = [
+    GGWAVE_TX_PROTOCOL_AUDIBLE_NORMAL ? 1 : 0,
+    GGWAVE_TX_PROTOCOL_AUDIBLE_FAST ? 1 : 0,
+    GGWAVE_TX_PROTOCOL_AUDIBLE_FASTEST ? 1 : 0,
+    GGWAVE_TX_PROTOCOL_ULTRASOUND_NORMAL ? 1 : 0,
+    GGWAVE_TX_PROTOCOL_ULTRASOUND_FAST ? 1 : 0,
+    GGWAVE_TX_PROTOCOL_ULTRASOUND_FASTEST ? 1 : 0,
+    GGWAVE_TX_PROTOCOL_DT_NORMAL ? 1 : 0,
+    GGWAVE_TX_PROTOCOL_DT_FAST ? 1 : 0,
+    GGWAVE_TX_PROTOCOL_DT_FASTEST ? 1 : 0,
+  ];
+  Pointer<Int8> settingsPointer = malloc(settings.length);
+  settingsPointer.asTypedList(settings.length).setAll(0, settings);
+  _bindings.setRxProtocolIDs(settingsPointer);
+}
+
 /// A very short-lived native function.
 ///
 /// For very short-lived functions, it is fine to call them on the main isolate.
