@@ -75,6 +75,14 @@ class GgwaveFlutterBindings {
       _lookup<ffi.NativeFunction<ffi.Void Function()>>('initNative');
   late final _initNative = _initNativePtr.asFunction<void Function()>();
 
+  void deinit() {
+    return _deinit();
+  }
+
+  late final _deinitPtr =
+      _lookup<ffi.NativeFunction<ffi.Void Function()>>('deinit');
+  late final _deinit = _deinitPtr.asFunction<void Function()>();
+
   int convertDataToAudio(
     ffi.Pointer<ffi.Int8> dataBuffer,
     int dataSize,
@@ -119,6 +127,50 @@ class GgwaveFlutterBindings {
   late final _processCaptureData = _processCaptureDataPtr.asFunction<
       int Function(
           ffi.Pointer<ffi.Int8>, int, ffi.Pointer<ffi.Pointer<ffi.Int8>>)>();
+
+  int processCaptureDataLocal(
+    ffi.Pointer<ffi.Int8> dataBuffer,
+    int dataSize,
+    ffi.Pointer<ffi.Pointer<ffi.Int8>> out,
+  ) {
+    return _processCaptureDataLocal(
+      dataBuffer,
+      dataSize,
+      out,
+    );
+  }
+
+  late final _processCaptureDataLocalPtr = _lookup<
+      ffi.NativeFunction<
+          ffi.Int32 Function(ffi.Pointer<ffi.Int8>, ffi.Int32,
+              ffi.Pointer<ffi.Pointer<ffi.Int8>>)>>('processCaptureDataLocal');
+  late final _processCaptureDataLocal = _processCaptureDataLocalPtr.asFunction<
+      int Function(
+          ffi.Pointer<ffi.Int8>, int, ffi.Pointer<ffi.Pointer<ffi.Int8>>)>();
+
+  int processCaptureDataLocalwithProtocols(
+    ffi.Pointer<ffi.Int8> protocolIDs,
+    ffi.Pointer<ffi.Int8> dataBuffer,
+    int dataSize,
+    ffi.Pointer<ffi.Pointer<ffi.Int8>> out,
+  ) {
+    return _processCaptureDataLocalwithProtocols(
+      protocolIDs,
+      dataBuffer,
+      dataSize,
+      out,
+    );
+  }
+
+  late final _processCaptureDataLocalwithProtocolsPtr = _lookup<
+          ffi.NativeFunction<
+              ffi.Int32 Function(ffi.Pointer<ffi.Int8>, ffi.Pointer<ffi.Int8>,
+                  ffi.Int32, ffi.Pointer<ffi.Pointer<ffi.Int8>>)>>(
+      'processCaptureDataLocalwithProtocols');
+  late final _processCaptureDataLocalwithProtocols =
+      _processCaptureDataLocalwithProtocolsPtr.asFunction<
+          int Function(ffi.Pointer<ffi.Int8>, ffi.Pointer<ffi.Int8>, int,
+              ffi.Pointer<ffi.Pointer<ffi.Int8>>)>();
 
   void setRxProtocolID(
     int protocolID,

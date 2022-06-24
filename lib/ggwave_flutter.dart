@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:developer' as dev;
 import 'dart:ffi';
 import 'dart:io';
 import 'dart:isolate';
@@ -33,19 +34,23 @@ enum GGWaveTxProtocolId {
 
 void init() => _bindings.initNative();
 
+void deinit() => _bindings.deinit();
+
 Uint8List? convertDataToAudio(String data,
     {GGWaveTxProtocolId protocol =
         GGWaveTxProtocolId.GGWAVE_TX_PROTOCOL_AUDIBLE_FAST}) {
   var dataPointer = data.toNativeUtf8().cast<Int8>();
   Pointer<Pointer<Int8>> out = malloc();
-  int res = _bindings.convertDataToAudio(
+  int length = _bindings.convertDataToAudio(
       dataPointer, data.length, out, protocol.index);
-  if (res < 0) {
+  if (length < 0) {
+    malloc.free(dataPointer);
+    malloc.free(out.value);
     malloc.free(out);
     return null;
   }
 
-  Uint8List audioDataInCMemory = out.value.cast<Uint8>().asTypedList(res);
+  Uint8List audioDataInCMemory = out.value.cast<Uint8>().asTypedList(length);
   // create copy for dart GC
   // see https://github.com/dart-lang/ffi/issues/22
   Uint8List audioData = Uint8List.fromList(audioDataInCMemory);
@@ -54,14 +59,48 @@ Uint8List? convertDataToAudio(String data,
   return audioData;
 }
 
-String? convertAudioToData(Uint8List audio) {
+String? convertAudioToData(Uint8List audio) =>
+    _convertAudioToData(audio, _bindings.processCaptureData);
+String? convertAudioToDataOneShot(Uint8List audio, {List<int>? protocols}) {
+  if (protocols != null) {
+    Pointer<Int8> protocolPointer = malloc(protocols.length);
+    protocolPointer.asTypedList(protocols.length).setAll(0, protocols);
+    var res = _convertAudioToData(
+        audio,
+        (
+          Pointer<Int8> payload,
+          int payloadSize,
+          Pointer<Pointer<Int8>> out,
+        ) =>
+            _bindings.processCaptureDataLocalwithProtocols(
+                protocolPointer, payload, payloadSize, out));
+    malloc.free(protocolPointer);
+    return res;
+  }
+
+  return _convertAudioToData(audio, _bindings.processCaptureDataLocal);
+}
+
+String? _convertAudioToData(
+  Uint8List audio,
+  int Function(
+    Pointer<Int8> payload,
+    int payloadSize,
+    Pointer<Pointer<Int8>> out,
+  )
+      converter,
+) {
   Pointer<Int8> dataPointer = malloc(audio.length);
+  // print(audio.length);
   Pointer<Pointer<Int8>> out = malloc();
-  dataPointer.asTypedList(audio.length).setAll(0, audio.buffer.asInt8List());
-  int size = _bindings.processCaptureData(dataPointer, audio.length, out);
+  dataPointer.asTypedList(audio.length).setAll(0, audio);
+  int length = converter(dataPointer, audio.length, out);
+  // print(size);
   String? data;
-  if (size > 0) {
-    data = out.value.cast<Utf8>().toDartString();
+  if (length > 0) {
+    data = out.value.cast<Utf8>().toDartString(length: length);
+  } else if (length < 0) {
+    dev.log("error during decoding: $length", error: null);
   }
   malloc.free(dataPointer);
   malloc.free(out.value);
@@ -78,6 +117,7 @@ void setRxProtocolID(GGWaveTxProtocolId? protocolID) {
 }
 
 void setRxProtocolIDs({
+  List<int>? protocolSettings,
   bool GGWAVE_TX_PROTOCOL_AUDIBLE_NORMAL = false,
   bool GGWAVE_TX_PROTOCOL_AUDIBLE_FAST = false,
   bool GGWAVE_TX_PROTOCOL_AUDIBLE_FASTEST = false,
@@ -88,6 +128,34 @@ void setRxProtocolIDs({
   bool GGWAVE_TX_PROTOCOL_DT_FAST = false,
   bool GGWAVE_TX_PROTOCOL_DT_FASTEST = false,
 }) {
+  protocolSettings ??= settingsToList(
+      GGWAVE_TX_PROTOCOL_AUDIBLE_NORMAL,
+      GGWAVE_TX_PROTOCOL_AUDIBLE_FAST,
+      GGWAVE_TX_PROTOCOL_AUDIBLE_FASTEST,
+      GGWAVE_TX_PROTOCOL_ULTRASOUND_NORMAL,
+      GGWAVE_TX_PROTOCOL_ULTRASOUND_FAST,
+      GGWAVE_TX_PROTOCOL_ULTRASOUND_FASTEST,
+      GGWAVE_TX_PROTOCOL_DT_NORMAL,
+      GGWAVE_TX_PROTOCOL_DT_FAST,
+      GGWAVE_TX_PROTOCOL_DT_FASTEST);
+  Pointer<Int8> settingsPointer = malloc(protocolSettings.length);
+  settingsPointer
+      .asTypedList(protocolSettings.length)
+      .setAll(0, protocolSettings);
+  _bindings.setRxProtocolIDs(settingsPointer);
+  malloc.free(settingsPointer);
+}
+
+List<int> settingsToList(
+    bool GGWAVE_TX_PROTOCOL_AUDIBLE_NORMAL,
+    bool GGWAVE_TX_PROTOCOL_AUDIBLE_FAST,
+    bool GGWAVE_TX_PROTOCOL_AUDIBLE_FASTEST,
+    bool GGWAVE_TX_PROTOCOL_ULTRASOUND_NORMAL,
+    bool GGWAVE_TX_PROTOCOL_ULTRASOUND_FAST,
+    bool GGWAVE_TX_PROTOCOL_ULTRASOUND_FASTEST,
+    bool GGWAVE_TX_PROTOCOL_DT_NORMAL,
+    bool GGWAVE_TX_PROTOCOL_DT_FAST,
+    bool GGWAVE_TX_PROTOCOL_DT_FASTEST) {
   List<int> settings = [
     GGWAVE_TX_PROTOCOL_AUDIBLE_NORMAL ? 1 : 0,
     GGWAVE_TX_PROTOCOL_AUDIBLE_FAST ? 1 : 0,
@@ -99,9 +167,7 @@ void setRxProtocolIDs({
     GGWAVE_TX_PROTOCOL_DT_FAST ? 1 : 0,
     GGWAVE_TX_PROTOCOL_DT_FASTEST ? 1 : 0,
   ];
-  Pointer<Int8> settingsPointer = malloc(settings.length);
-  settingsPointer.asTypedList(settings.length).setAll(0, settings);
-  _bindings.setRxProtocolIDs(settingsPointer);
+  return settings;
 }
 
 /// A very short-lived native function.

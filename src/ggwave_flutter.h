@@ -34,9 +34,14 @@ FFI_PLUGIN_EXPORT intptr_t sum_long_running(intptr_t a, intptr_t b);
 
 FFI_PLUGIN_EXPORT void initNative();
 
+FFI_PLUGIN_EXPORT void deinit();
+
 FFI_PLUGIN_EXPORT int convertDataToAudio(const char *dataBuffer, int dataSize, char **out, int protocolID);
 
 FFI_PLUGIN_EXPORT int processCaptureData(const char *dataBuffer, int dataSize, char **out);
+
+FFI_PLUGIN_EXPORT int processCaptureDataLocal(const char *dataBuffer, int dataSize, char **out);
+FFI_PLUGIN_EXPORT int processCaptureDataLocalwithProtocols(char *protocolIDs, const char *dataBuffer, int dataSize, char **out);
 
 FFI_PLUGIN_EXPORT void setRxProtocolID(int protocolID);
 
