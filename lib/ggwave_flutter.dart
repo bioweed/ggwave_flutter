@@ -100,6 +100,7 @@ String? _convertAudioToData(
   if (length > 0) {
     data = out.value.cast<Utf8>().toDartString(length: length);
   } else if (length < 0) {
+    data = "";
     dev.log("error during decoding: $length", error: null);
   }
   malloc.free(dataPointer);
